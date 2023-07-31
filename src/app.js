@@ -7,10 +7,13 @@ import session from 'express-session';
 import MongoStore from 'connect-mongo';
 import passport from 'passport';
 import passportConfig from './config/passport.js';
+import cors from 'cors'
 
 function startServer() {
     const app = express();
     const httpServer = createServer(app);
+    // Cors
+    app.use(cors());
     // For Body parse - JSON Data
     app.use(express.json());
     // For Session

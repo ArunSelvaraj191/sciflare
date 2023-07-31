@@ -26,12 +26,15 @@ Routes.get('/logout',(req,res,next)=>{
 })
 
 Routes.post('/register', async (req, res) => {
-    console.log('>>>>>>')
+    console.log('>>>>>>',req.body)
     try {
         let user = new UserModel({
+            email : req.body.email,
             username: req.body.username,
             password: bcrypt.hashSync(req.body.password,10),
+            role : req.body.role,
             phone_number : faker.phone.phoneNumber(),
+            age : req.body.age,
         })
 
         await user.save().then(user => console.log("USER :::", user))
@@ -47,6 +50,10 @@ Routes.get('/protected',(req,res)=>{
     }else{
         res.status(401).send({message : 'Unauthorized'})
     }
+})
+
+Routes.get('/',(req,res)=>{
+    res.send('uyfgdufed')
 })
 
 
