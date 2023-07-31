@@ -13,4 +13,5 @@ const decimal = (value) => {
 export default {
   PORT: decimal(process.env["PORT"]),
   MONGODB: process.env["MONGODB_CONNECTION"],
+  SECRET_KEY: process.env["SECRET_KEY"],
 };

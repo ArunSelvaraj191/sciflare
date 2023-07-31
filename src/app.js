@@ -1,14 +1,41 @@
 import express from 'express'
 import CONFIG from './config/index.js';
-import protectedRoute from './routes/protected/index.js'
+import Routes from './routes/index.js'
 import { createServer } from "node:http";
 import mongoose from "mongoose";
+import session from 'express-session';
+import MongoStore from 'connect-mongo';
+import passport from 'passport';
+import passportConfig from './config/passport.js';
 
 function startServer() {
     const app = express();
     const httpServer = createServer(app);
+    // For Body parse - JSON Data
     app.use(express.json());
-    app.use('/api',protectedRoute);
+    // For Session
+    app.use(session({
+      secret : CONFIG.SECRET_KEY,
+      resave : false,
+      saveUninitialized : true,
+      cookie : {
+        maxAge : 1000 * 60 * 60 * 21 // Number of Milliseconds * Seconds * Minutes * Hours
+      },
+      // store : mongoose.createConnection({mongoUrl : CONFIG.MONGODB, collectionName : 'sessions'})
+      store : MongoStore.create({mongoUrl:CONFIG.MONGODB,collectionName:"sessions"})
+    }))
+
+    app.use(passport.initialize())
+    app.use(passport.session())
+
+    // Call passport file
+
+    passportConfig();
+
+    // require('./config/passport.js')
+
+    // Routes
+    app.use('/api',Routes);
   
     const server = httpServer
       .listen(CONFIG.PORT, () => {
