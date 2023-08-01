@@ -1,96 +1,90 @@
-import { useCallback, useState, useEffect, ChangeEvent, FocusEvent } from "react";
+import { useCallback, useState, ChangeEvent, FocusEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Typography,
   Box,
   Card,
   CardContent,
-  CardActions,
   Button,
   TextField,
   Grid,
-  Autocomplete,
   InputAdornment,
   IconButton,
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import axios from 'axios';
-// import CONFIG from '../../config/index'
-
+import axios from "axios";
+import { toast } from "react-toastify";
 
 interface dataState {
   username: string;
   age: number;
-  role: string;
+  role: number;
   email: string;
   password: string;
   cpassword: string;
 }
 
 const Signup = () => {
-  // States
+  const navigate = useNavigate();
+  const baseURL = "http://localhost:5000/api";
 
+  // States
   const [showPassword, setShowPassword] = useState(false);
   const [cshowPassword, setCShowPassword] = useState(false);
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [isValidPassword, setIsValidPassword] = useState(false);
-  console.log('isValidPassword :::', isValidPassword )
   const [data, setData] = useState<dataState>({
-    username: '',
+    username: "",
     age: 0,
-    role: '',
-    email: '',
-    password: '',
-    cpassword: ''
-  })
-
-  console.log('data :::', data)
+    role: 1,
+    email: "",
+    password: "",
+    cpassword: "",
+  });
 
   // Methods
 
   const handleOnChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event?.target;
-    console.log('change', name, value)
-    if (name === 'age') {
+    if (name === "age") {
       const regex = /^[0-9]{0,2}$/;
       if (regex.test(value)) {
         setData((prev: any) => ({
           ...prev,
-          [name]: value
-        }))
+          [name]: value,
+        }));
       }
-    }
-    else {
+    } else {
       setData((prev) => ({
         ...prev,
-        [name]: value
-      }))
+        [name]: value,
+      }));
     }
-  }, [])
+  }, []);
 
-  const handleOnBlur = useCallback((event: FocusEvent<HTMLInputElement>) => {
-    const { name, value } = event?.target;
-    if (name === 'email') {
-      const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/i;
-      setIsValidEmail(emailRegex.test(value));
-    }
-    else if(name === 'password' || name === 'cpassword'){
-      console.log('data?.password !== data?.cpassword',data?.password !== data?.cpassword)
-      if(data?.password !== data?.cpassword){
-        setIsValidPassword(true);
-      }else{
-        setIsValidPassword(false);
+  const handleOnBlur = useCallback(
+    (event: FocusEvent<HTMLInputElement>) => {
+      const { name, value } = event?.target;
+      if (name === "email") {
+        const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/i;
+        setIsValidEmail(emailRegex.test(value));
+      } else if (name === "password" || name === "cpassword") {
+        if (data?.password !== data?.cpassword) {
+          setIsValidPassword(true);
+        } else {
+          setIsValidPassword(false);
+        }
       }
-    }
-
-  }, [data])
+    },
+    [data]
+  );
 
   const handleClickShowPassword = useCallback(
     (name: string) => () => {
-      console.log(name);
       name == "password"
         ? setShowPassword((show) => !show)
         : setCShowPassword((show) => !show);
@@ -100,47 +94,38 @@ const Signup = () => {
 
   const saveDisable = useCallback(() => {
     let disable = true;
-    console.log('>>>>', Object.values(data).every((ele) => ele), data)
-    if (Object.values(disable).every((ele) => ele)) {
-      disable = false;
-    }
+    disable =
+      Object.values(data).every((ele) => ele) &&
+      isValidEmail &&
+      !isValidPassword
+        ? false
+        : true;
     return disable;
-  }, [data])
+  }, [data, isValidEmail, isValidPassword]);
 
-  const save = useCallback(()=>{
-    const payload = data;
-    
-    axios.post('http://localhost:5000/api/register', payload)
-      .then(response => {
-        console.log('Post created successfully:', response.data);
-      })
-      .catch(error => {
-        console.error('Error creating post:', error);
-      });
-  },[data])
-
-  useEffect(() => {
-    const header = {
-      'Authorization': 'Bearer sciflare',
-      'Content-Type': 'application/json',
+  const save = useCallback(() => {
+    const headers = {
+      Authorization: "Bearer sciflare",
+      "Content-Type": "application/json",
     };
-    const apiUrl = 'http://localhost:5000/api/'; 
-
-    axios.get(apiUrl, {
-      headers: header
-    })
-      .then((response : any) => {
-        // setData(response.data); 
+    // const payload = data;
+    axios
+      .post(`${baseURL}/register`, data, { headers })
+      .then((response) => {
+        toast(`${data?.role === 1 ? "Admin" : "User"} Created`, {
+          type: "success",
+        });
+        navigate("/");
       })
-      .catch((error: Error) => {
-        console.error('Error fetching data:', error);
+      .catch((error) => {
+        toast(error, { type: "error" });
       });
-  }, []);
+  }, [data]);
 
   return (
     <>
       <Box>
-        <Card sx={{ maxWidth: 800, height: "380px", width: "100%" }}>
+        <Card sx={{ maxWidth: 800, height: "400px", width: "100%" }}>
           <Typography variant="h4" sx={{ textAlign: "center", mt: 2 }}>
             SIGNUP
           </Typography>
@@ -151,19 +136,19 @@ const Signup = () => {
                   required
                   fullWidth
                   label="User Name"
-                  name='username'
+                  name="username"
                   variant="standard"
                   placeholder="Enter user name"
                   onChange={handleOnChange}
-                  sx={{ my:1 }}
+                  sx={{ my: 1 }}
                 />
-                <FormControl fullWidth sx={{ my:1 }}>
-                  <InputLabel sx={{ml:'-10px'}}>Role</InputLabel>
+                <FormControl fullWidth sx={{ my: 1 }}>
+                  <InputLabel sx={{ ml: "-10px" }}>Role</InputLabel>
                   <Select
-                    name='role'
+                    name="role"
                     value={data.role}
                     label="Role"
-                    variant='standard'
+                    variant="standard"
                     onChange={handleOnChange}
                   >
                     <MenuItem value={1}>Admin</MenuItem>
@@ -191,7 +176,7 @@ const Signup = () => {
                       </InputAdornment>
                     ),
                   }}
-                  sx={{ my:1 }}
+                  sx={{ my: 1 }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -199,26 +184,25 @@ const Signup = () => {
                   fullWidth
                   required
                   label="Age"
-                  name='age'
-                  value={data?.age ? data?.age : ''}
+                  name="age"
+                  value={data?.age ? data?.age : ""}
                   variant="standard"
                   placeholder="Enter age"
                   onChange={handleOnChange}
-                  type="number"
-                  sx={{ my:1 }}
+                  sx={{ my: 1 }}
                 />
                 <TextField
                   fullWidth
                   required
                   label="Email"
-                  name='email'
+                  name="email"
                   variant="standard"
                   placeholder="Enter email"
                   onChange={handleOnChange}
                   onBlur={handleOnBlur}
                   error={!isValidEmail}
-                  helperText={!isValidEmail && 'Enter Valid Email'}
-                  sx={{ my:1 }}
+                  helperText={!isValidEmail && "Enter Valid Email"}
+                  sx={{ my: 1 }}
                 />
                 <TextField
                   fullWidth
@@ -243,12 +227,29 @@ const Signup = () => {
                       </InputAdornment>
                     ),
                   }}
-                  sx={{ my:1 }}
+                  sx={{ my: 1 }}
                 />
               </Grid>
             </Grid>
           </CardContent>
-          <Button size="large" variant='contained' disabled={saveDisable()} onClick={save}>Submit</Button>
+          <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+            <Button
+              size="large"
+              variant="contained"
+              sx={{ mr: 2 }}
+              onClick={() => navigate("/")}
+            >
+              Login
+            </Button>
+            <Button
+              size="large"
+              variant="contained"
+              disabled={saveDisable()}
+              onClick={save}
+            >
+              Submit
+            </Button>
+          </Box>
         </Card>
       </Box>
     </>

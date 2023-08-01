@@ -11,7 +11,6 @@ const passportConfig = () => {
         async function (username, password, done) {
             try {
                 const user = await UserModel.findOne({ username: username });
-                console.log('Log 1::::', user);
             if (!user) {
               return done(null, false, { message: "User Doesn't Exist" });
             }
@@ -35,7 +34,7 @@ passport.serializeUser(function(user, done) {
   passport.deserializeUser(async function (id, done) {
     try {
       let user = await UserModel.findById(id);
-      console.log('user 2 ::',user)
+      console.log('user data ::',user)
       done(null, user);
     } catch (err) {
       done(err);

@@ -24,6 +24,9 @@ const userSchema = mongoose.Schema({
     age : {
         type:Number
     },
+    state : {
+        type : String
+    }
 })
 
 const UserModel = mongoose.model('User',userSchema);
